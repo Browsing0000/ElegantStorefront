@@ -32,11 +32,13 @@ export default function EcommerceSection() {
   const sortedProducts = [...(products as Product[])].sort((a: Product, b: Product) => {
     switch (sortBy) {
       case "price-low":
-        return parseFloat(a.price) - parseFloat(b.price);
+        return a.price - b.price;
       case "price-high":
-        return parseFloat(b.price) - parseFloat(a.price);
+        return b.price - a.price;
       case "newest":
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        const bDate = b.created_at ? new Date(b.created_at) : new Date();
+        const aDate = a.created_at ? new Date(a.created_at) : new Date();
+        return bDate.getTime() - aDate.getTime();
       default:
         return 0;
     }
@@ -131,7 +133,7 @@ export default function EcommerceSection() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sortedProducts.map((product: Product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product._id} product={product} />
           ))}
         </div>
       )}

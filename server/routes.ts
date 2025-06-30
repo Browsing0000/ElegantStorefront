@@ -44,7 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/products/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const product = await storage.getProduct(id);
       
       if (!product) {
@@ -60,8 +60,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cart routes (using session for simplicity - in production would use proper auth)
   app.get("/api/cart", async (req, res) => {
     try {
-      // For demo purposes, using userId = 1
-      const cartItems = await storage.getCartItems(1);
+      // For demo purposes, using userId = "1" (string for MongoDB compatibility)
+      const cartItems = await storage.getCartItems("1");
       const itemsWithProducts = await Promise.all(
         cartItems.map(async (item) => {
           const product = await storage.getProduct(item.productId);
@@ -78,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertCartItemSchema.parse({
         ...req.body,
-        userId: 1 // Demo user ID
+        userId: "1" // Demo user ID - now using string for MongoDB compatibility
       });
       
       const cartItem = await storage.addToCart(validatedData);
@@ -90,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/cart/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const { quantity } = req.body;
       
       const updatedItem = await storage.updateCartItem(id, quantity);
@@ -106,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/cart/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const success = await storage.removeFromCart(id);
       
       if (!success) {
@@ -122,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Order routes
   app.get("/api/orders", async (req, res) => {
     try {
-      const orders = await storage.getOrders(1); // Demo user ID
+      const orders = await storage.getOrders("demo-user-id"); // Demo user ID
       res.json(orders);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch orders" });
@@ -133,13 +133,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertOrderSchema.parse({
         ...req.body,
-        userId: 1 // Demo user ID
+        user_id: "demo-user-id" // Demo user ID
       });
       
       const order = await storage.createOrder(validatedData);
       
       // Clear cart after successful order
-      await storage.clearCart(1);
+      await storage.clearCart("demo-user-id");
       
       res.json(order);
     } catch (error) {
@@ -150,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Prototyping routes
   app.get("/api/prototyping", async (req, res) => {
     try {
-      const projects = await storage.getPrototypingProjects(1); // Demo user ID
+      const projects = await storage.getPrototypingProjects("demo-user-id"); // Demo user ID
       res.json(projects);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch prototyping projects" });
@@ -169,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const validatedData = insertPrototypingProjectSchema.parse({
         ...req.body,
-        userId: 1, // Demo user ID
+        user_id: "demo-user-id", // Demo user ID
         files: fileInfo
       });
       
@@ -184,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 3D Printing routes
   app.get("/api/printing", async (req, res) => {
     try {
-      const requests = await storage.getPrintingRequests(1); // Demo user ID
+      const requests = await storage.getPrintingRequests("demo-user-id"); // Demo user ID
       res.json(requests);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch printing requests" });
@@ -254,9 +254,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const validatedData = insertPrintingRequestSchema.parse({
         ...req.body,
-        userId: 1, // Demo user ID
-        fileName: file.originalname,
-        fileUrl: `/uploads/${file.filename}`
+        user_id: "demo-user-id", // Demo user ID
+        file_name: file.originalname,
+        file_url: `/uploads/${file.filename}`
       });
       
       const request = await storage.createPrintingRequest(validatedData);
