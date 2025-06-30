@@ -15,7 +15,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const queryClient = useQueryClient();
 
   const addToCartMutation = useMutation({
-    mutationFn: (productId: number) =>
+    mutationFn: (productId: string) =>
       apiRequest("POST", "/api/cart", { productId, quantity: 1 }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
@@ -37,7 +37,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     <Card className="overflow-hidden hover:shadow-md transition-shadow group product-card">
       <div className="aspect-square overflow-hidden">
         <img
-          src={product.imageUrl}
+          src={product.images[0] || 'https://via.placeholder.com/400x300'}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
@@ -50,14 +50,14 @@ export default function ProductCard({ product }: ProductCardProps) {
             {formatPrice(product.price)}
           </span>
           <Button
-            onClick={() => addToCartMutation.mutate(product.id)}
-            disabled={addToCartMutation.isPending || !product.inStock}
+            onClick={() => addToCartMutation.mutate(product._id || "")}
+            disabled={addToCartMutation.isPending || product.stock === 0}
             className="bg-primary hover:bg-primary/90"
           >
             {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
           </Button>
         </div>
-        {!product.inStock && (
+        {product.stock === 0 && (
           <p className="text-red-500 text-sm mt-2">Out of stock</p>
         )}
       </CardContent>

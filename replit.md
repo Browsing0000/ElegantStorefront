@@ -18,16 +18,16 @@ This is a modern full-stack web application that combines e-commerce functionali
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript with ES modules
-- **Database**: PostgreSQL with Drizzle ORM
-- **Database Provider**: Neon Database (serverless PostgreSQL)
+- **Database**: MongoDB-compatible storage with comprehensive schema
+- **Storage Implementation**: In-memory storage with MongoDB schema structure
 - **File Uploads**: Multer middleware for handling file uploads
-- **Session Management**: connect-pg-simple for PostgreSQL-backed sessions
+- **Session Management**: Memory-based session storage
 - **Development**: Hot module replacement via Vite integration
 
 ### Data Storage Solutions
-- **Primary Database**: PostgreSQL via Neon Database serverless connection
-- **ORM**: Drizzle ORM with type-safe schema definitions
-- **Migrations**: Drizzle Kit for database schema management
+- **Primary Storage**: MongoDB-compatible in-memory storage with comprehensive collections
+- **Schema Validation**: Zod schemas with MongoDB ObjectId string-based IDs
+- **Collections**: Users, Products, Orders, Cart, Categories, Payments, Reviews, Prototyping Projects, Printing Requests
 - **File Storage**: Local file system with Multer (uploads directory)
 
 ## Key Components
@@ -112,6 +112,7 @@ The application is designed for easy deployment on platforms like Replit, with a
 Changelog:
 - June 29, 2025. Initial setup
 - June 30, 2025. Migrated from Vite to Next.js 15 while maintaining same UI theme and functionality
+- June 30, 2025. Successfully converted database architecture from PostgreSQL to MongoDB using comprehensive schema models provided by user. Updated all collections (Users, Products, Orders, Cart, Categories, Payments, Reviews, Prototyping Projects, Printing Requests) with MongoDB ObjectId string-based IDs and proper field naming conventions.
 ```
 
 ## User Preferences

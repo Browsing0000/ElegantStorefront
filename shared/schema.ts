@@ -1,118 +1,220 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull().unique(),
-  fullName: text("full_name").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// User Collection Schema
+export const userSchema = z.object({
+  _id: z.string().optional(),
+  name: z.string(),
+  email: z.string().email(),
+  password_hash: z.string(),
+  address: z.object({
+    street: z.string(),
+    city: z.string(),
+    state: z.string(),
+    zip: z.string()
+  }).optional(),
+  phone: z.string().optional(),
+  created_at: z.date().optional(),
+  role: z.enum(["customer", "admin"]).default("customer")
 });
 
-export const products = pgTable("products", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  category: text("category").notNull(),
-  imageUrl: text("image_url").notNull(),
-  inStock: boolean("in_stock").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Products Collection Schema
+export const productSchema = z.object({
+  _id: z.string().optional(),
+  name: z.string(),
+  description: z.string(),
+  price: z.number(),
+  category: z.string(),
+  images: z.array(z.string()),
+  stock: z.number(),
+  created_at: z.date().optional(),
+  variants: z.array(z.object({
+    size: z.string().optional(),
+    color: z.string().optional(),
+    stock: z.number().optional(),
+    price_adjustment: z.number().optional()
+  })).optional()
 });
 
-export const cartItems = pgTable("cart_items", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  productId: integer("product_id").references(() => products.id).notNull(),
-  quantity: integer("quantity").default(1).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Orders Collection Schema
+export const orderSchema = z.object({
+  _id: z.string().optional(),
+  user_id: z.string(),
+  status: z.enum(["pending", "completed", "cancelled", "shipped"]).default("pending"),
+  total: z.number(),
+  order_items: z.array(z.object({
+    product_id: z.string(),
+    name: z.string(),
+    quantity: z.number(),
+    price: z.number()
+  })),
+  shipping_address: z.object({
+    street: z.string(),
+    city: z.string(),
+    state: z.string(),
+    zip: z.string()
+  }),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional()
 });
 
-export const orders = pgTable("orders", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
-  status: text("status").default("pending").notNull(),
-  items: jsonb("items").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Cart Collection Schema (Optional)
+export const cartSchema = z.object({
+  _id: z.string().optional(),
+  user_id: z.string(),
+  items: z.array(z.object({
+    product_id: z.string(),
+    quantity: z.number()
+  })),
+  updated_at: z.date().optional()
 });
 
-export const prototypingProjects = pgTable("prototyping_projects", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  projectName: text("project_name").notNull(),
-  category: text("category").notNull(),
-  description: text("description").notNull(),
-  budgetRange: text("budget_range"),
-  timeline: text("timeline"),
-  status: text("status").default("submitted").notNull(),
-  files: jsonb("files").default([]),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Categories Collection Schema
+export const categorySchema = z.object({
+  _id: z.string().optional(),
+  name: z.string(),
+  description: z.string()
 });
 
-export const printingRequests = pgTable("printing_requests", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  fileName: text("file_name").notNull(),
-  fileUrl: text("file_url").notNull(),
-  material: text("material").notNull(),
-  quality: text("quality").notNull(),
-  infillDensity: integer("infill_density").default(20).notNull(),
-  color: text("color").default("white").notNull(),
-  estimatedCost: decimal("estimated_cost", { precision: 10, scale: 2 }).notNull(),
-  estimatedTime: text("estimated_time").notNull(),
-  status: text("status").default("pending").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Payments Collection Schema (Optional)
+export const paymentSchema = z.object({
+  _id: z.string().optional(),
+  order_id: z.string(),
+  user_id: z.string(),
+  amount: z.number(),
+  status: z.enum(["paid", "failed", "pending"]).default("pending"),
+  method: z.enum(["card", "paypal", "bank_transfer"]),
+  transaction_id: z.string().optional(),
+  created_at: z.date().optional()
 });
 
-// Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
+// Reviews Collection Schema (Optional)
+export const reviewSchema = z.object({
+  _id: z.string().optional(),
+  product_id: z.string(),
+  user_id: z.string(),
+  rating: z.number().min(1).max(5),
+  comment: z.string(),
+  created_at: z.date().optional()
 });
 
-export const insertProductSchema = createInsertSchema(products).omit({
-  id: true,
-  createdAt: true,
+// Prototyping Projects Schema
+export const prototypingProjectSchema = z.object({
+  _id: z.string().optional(),
+  user_id: z.string(),
+  project_name: z.string(),
+  category: z.string(),
+  description: z.string(),
+  budget_range: z.string().optional(),
+  timeline: z.string().optional(),
+  status: z.string().default("submitted"),
+  files: z.array(z.any()).default([]),
+  created_at: z.date().optional()
 });
 
-export const insertCartItemSchema = createInsertSchema(cartItems).omit({
-  id: true,
-  createdAt: true,
+// 3D Printing Requests Schema
+export const printingRequestSchema = z.object({
+  _id: z.string().optional(),
+  user_id: z.string(),
+  file_name: z.string(),
+  file_url: z.string(),
+  material: z.string(),
+  quality: z.string(),
+  infill_density: z.number().default(20),
+  color: z.string().default("white"),
+  estimated_cost: z.string(),
+  estimated_time: z.string(),
+  status: z.string().default("pending"),
+  created_at: z.date().optional()
 });
 
-export const insertOrderSchema = createInsertSchema(orders).omit({
-  id: true,
-  createdAt: true,
+// Insert schemas (omit _id and timestamps for new documents)
+export const insertUserSchema = userSchema.omit({
+  _id: true,
+  created_at: true
 });
 
-export const insertPrototypingProjectSchema = createInsertSchema(prototypingProjects).omit({
-  id: true,
-  createdAt: true,
+export const insertProductSchema = productSchema.omit({
+  _id: true,
+  created_at: true
 });
 
-export const insertPrintingRequestSchema = createInsertSchema(printingRequests).omit({
-  id: true,
-  createdAt: true,
+export const insertOrderSchema = orderSchema.omit({
+  _id: true,
+  created_at: true,
+  updated_at: true
 });
 
-// Types
-export type User = typeof users.$inferSelect;
+export const insertCartSchema = cartSchema.omit({
+  _id: true,
+  updated_at: true
+});
+
+export const insertCategorySchema = categorySchema.omit({
+  _id: true
+});
+
+export const insertPaymentSchema = paymentSchema.omit({
+  _id: true,
+  created_at: true
+});
+
+export const insertReviewSchema = reviewSchema.omit({
+  _id: true,
+  created_at: true
+});
+
+export const insertPrototypingProjectSchema = prototypingProjectSchema.omit({
+  _id: true,
+  created_at: true
+});
+
+export const insertPrintingRequestSchema = printingRequestSchema.omit({
+  _id: true,
+  created_at: true
+});
+
+// Legacy schemas for backward compatibility
+export const cartItemSchema = z.object({
+  _id: z.string().optional(),
+  userId: z.string(),
+  productId: z.string(),
+  quantity: z.number(),
+  createdAt: z.date().optional()
+});
+
+export const insertCartItemSchema = cartItemSchema.omit({
+  _id: true,
+  createdAt: true
+});
+
+// Type definitions
+export type User = z.infer<typeof userSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
-export type Product = typeof products.$inferSelect;
+export type Product = z.infer<typeof productSchema>;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 
-export type CartItem = typeof cartItems.$inferSelect;
-export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
-
-export type Order = typeof orders.$inferSelect;
+export type Order = z.infer<typeof orderSchema>;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
-export type PrototypingProject = typeof prototypingProjects.$inferSelect;
+export type Cart = z.infer<typeof cartSchema>;
+export type InsertCart = z.infer<typeof insertCartSchema>;
+
+export type Category = z.infer<typeof categorySchema>;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+
+export type Payment = z.infer<typeof paymentSchema>;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+
+export type Review = z.infer<typeof reviewSchema>;
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+
+export type PrototypingProject = z.infer<typeof prototypingProjectSchema>;
 export type InsertPrototypingProject = z.infer<typeof insertPrototypingProjectSchema>;
 
-export type PrintingRequest = typeof printingRequests.$inferSelect;
+export type PrintingRequest = z.infer<typeof printingRequestSchema>;
 export type InsertPrintingRequest = z.infer<typeof insertPrintingRequestSchema>;
+
+// Legacy types for backward compatibility
+export type CartItem = z.infer<typeof cartItemSchema>;
+export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
