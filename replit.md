@@ -7,9 +7,9 @@ This is a modern full-stack web application that combines e-commerce functionali
 ## System Architecture
 
 ### Frontend Architecture
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite for fast development and optimized builds
-- **Routing**: Wouter for lightweight client-side routing
+- **Framework**: Next.js 15 with React 18 and TypeScript
+- **Build Tool**: Next.js with built-in optimization and hot module replacement
+- **Routing**: Next.js App Router with file-based routing
 - **UI Components**: shadcn/ui components built on Radix UI primitives
 - **Styling**: Tailwind CSS with custom CSS variables for theming
 - **State Management**: TanStack Query (React Query) for server state management
@@ -88,15 +88,16 @@ The application uses the following main entities:
 ## Deployment Strategy
 
 ### Development
-- **Dev Server**: Vite development server with HMR
-- **API Server**: Express server with TypeScript compilation via tsx
+- **Dev Server**: Next.js development server with HMR on port 3000
+- **API Server**: Express server with TypeScript compilation via tsx on port 5000
 - **Database**: Direct connection to Neon Database
+- **API Proxy**: Next.js rewrites API calls to Express server
 
 ### Production Build
-1. **Frontend**: Vite builds optimized static assets to `dist/public`
+1. **Frontend**: Next.js builds optimized static assets and server-side components
 2. **Backend**: esbuild bundles server code to `dist/index.js`
 3. **Database**: Drizzle migrations applied via `db:push` command
-4. **Serving**: Express serves both API routes and static frontend assets
+4. **Serving**: Next.js serves frontend, Express serves API routes
 
 ### Environment Configuration
 - **DATABASE_URL**: PostgreSQL connection string (required)
@@ -110,6 +111,7 @@ The application is designed for easy deployment on platforms like Replit, with a
 ```
 Changelog:
 - June 29, 2025. Initial setup
+- June 30, 2025. Migrated from Vite to Next.js 15 while maintaining same UI theme and functionality
 ```
 
 ## User Preferences
